@@ -590,66 +590,66 @@ Non-gridded (surface) resamplings were performed using `mri_vol2surf`
                 bold_sdc_wf.get_node(node).interface.out_path_base = ""
                 bold_sdc_wf.get_node(node).inputs.dismiss_entities = ("echo",)
 
-        if 'syn' in fmaps:
-            sdc_select_std = pe.Node(
-                KeySelect(fields=['std2anat_xfm']),
-                name='sdc_select_std', run_without_submitting=True)
-            sdc_select_std.inputs.key = 'MNI152NLin2009cAsym'
-            workflow.connect([
-                (inputnode, sdc_select_std, [('std2anat_xfm', 'std2anat_xfm'),
-                                             ('template', 'keys')]),
-                (sdc_select_std, bold_sdc_wf, [('std2anat_xfm', 'inputnode.std2anat_xfm')]),
-            ])
+        # if 'syn' in fmaps:
+        #     sdc_select_std = pe.Node(
+        #         KeySelect(fields=['std2anat_xfm']),
+        #         name='sdc_select_std', run_without_submitting=True)
+        #     sdc_select_std.inputs.key = 'MNI152NLin2009cAsym'
+        #     workflow.connect([
+        #         (inputnode, sdc_select_std, [('std2anat_xfm', 'std2anat_xfm'),
+        #                                      ('template', 'keys')]),
+        #         (sdc_select_std, bold_sdc_wf, [('std2anat_xfm', 'inputnode.std2anat_xfm')]),
+        #     ])
 
-        if fmaps.get('syn') is True:  # SyN forced
-            syn_unwarp_report_wf = init_sdc_unwarp_report_wf(
-                name='syn_unwarp_report_wf', forcedsyn=True)
-            workflow.connect([
-                (inputnode, syn_unwarp_report_wf, [
-                    ('t1w_dseg', 'inputnode.in_seg')]),
-                (initial_boldref_wf, syn_unwarp_report_wf, [
-                    ('outputnode.ref_image', 'inputnode.in_pre')]),
-                (bold_reg_wf, syn_unwarp_report_wf, [
-                    ('outputnode.itk_t1_to_bold', 'inputnode.in_xfm')]),
-                (bold_sdc_wf, syn_unwarp_report_wf, [
-                    ('outputnode.syn_ref', 'inputnode.in_post')]),
-            ])
+        # if fmaps.get('syn') is True:  # SyN forced
+        #     syn_unwarp_report_wf = init_sdc_unwarp_report_wf(
+        #         name='syn_unwarp_report_wf', forcedsyn=True)
+        #     workflow.connect([
+        #         (inputnode, syn_unwarp_report_wf, [
+        #             ('t1w_dseg', 'inputnode.in_seg')]),
+        #         (initial_boldref_wf, syn_unwarp_report_wf, [
+        #             ('outputnode.ref_image', 'inputnode.in_pre')]),
+        #         (bold_reg_wf, syn_unwarp_report_wf, [
+        #             ('outputnode.itk_t1_to_bold', 'inputnode.in_xfm')]),
+        #         (bold_sdc_wf, syn_unwarp_report_wf, [
+        #             ('outputnode.syn_ref', 'inputnode.in_post')]),
+        #     ])
 
-            # Overwrite ``out_path_base`` of unwarping DataSinks
-            # And ensure echo is dropped from report
-            for node in syn_unwarp_report_wf.list_node_names():
-                if node.split('.')[-1].startswith('ds_'):
-                    syn_unwarp_report_wf.get_node(node).interface.out_path_base = ""
-                    syn_unwarp_report_wf.get_node(node).inputs.dismiss_entities = ("echo",)
+        #     # Overwrite ``out_path_base`` of unwarping DataSinks
+        #     # And ensure echo is dropped from report
+        #     for node in syn_unwarp_report_wf.list_node_names():
+        #         if node.split('.')[-1].startswith('ds_'):
+        #             syn_unwarp_report_wf.get_node(node).interface.out_path_base = ""
+        #             syn_unwarp_report_wf.get_node(node).inputs.dismiss_entities = ("echo",)
 
-    # Map final BOLD mask into T1w space (if required)
-    nonstd_spaces = set(spaces.get_nonstandard())
-    if nonstd_spaces.intersection(('T1w', 'anat')):
-        from niworkflows.interfaces.fixes import (
-            FixHeaderApplyTransforms as ApplyTransforms
-        )
+    # # Map final BOLD mask into T1w space (if required)
+    # nonstd_spaces = set(spaces.get_nonstandard())
+    # if nonstd_spaces.intersection(('T1w', 'anat')):
+    #     from niworkflows.interfaces.fixes import (
+    #         FixHeaderApplyTransforms as ApplyTransforms
+    #     )
 
-        boldmask_to_t1w = pe.Node(ApplyTransforms(interpolation='MultiLabel'),
-                                  name='boldmask_to_t1w', mem_gb=0.1)
-        workflow.connect([
-            (bold_reg_wf, boldmask_to_t1w, [
-                ('outputnode.itk_bold_to_t1', 'transforms')]),
-            (bold_t1_trans_wf, boldmask_to_t1w, [
-                ('outputnode.bold_mask_t1', 'reference_image')]),
-            (final_boldref_wf, boldmask_to_t1w, [
-                ('outputnode.bold_mask', 'input_image')]),
-            (boldmask_to_t1w, outputnode, [
-                ('output_image', 'bold_mask_t1')]),
-        ])
+    #     boldmask_to_t1w = pe.Node(ApplyTransforms(interpolation='MultiLabel'),
+    #                               name='boldmask_to_t1w', mem_gb=0.1)
+    #     workflow.connect([
+    #         (bold_reg_wf, boldmask_to_t1w, [
+    #             ('outputnode.itk_bold_to_t1', 'transforms')]),
+    #         (bold_t1_trans_wf, boldmask_to_t1w, [
+    #             ('outputnode.bold_mask_t1', 'reference_image')]),
+    #         (final_boldref_wf, boldmask_to_t1w, [
+    #             ('outputnode.bold_mask', 'input_image')]),
+    #         (boldmask_to_t1w, outputnode, [
+    #             ('output_image', 'bold_mask_t1')]),
+    #     ])
 
-    if nonstd_spaces.intersection(('func', 'run', 'bold', 'boldref', 'sbref')):
-        workflow.connect([
-            (final_boldref_wf, func_derivatives_wf, [
-                ('outputnode.ref_image', 'inputnode.bold_native_ref'),
-                ('outputnode.bold_mask', 'inputnode.bold_mask_native')]),
-            (bold_bold_trans_wf if not multiecho else bold_t2s_wf, outputnode, [
-                ('outputnode.bold', 'bold_native')])
-        ])
+    # if nonstd_spaces.intersection(('func', 'run', 'bold', 'boldref', 'sbref')):
+    #     workflow.connect([
+    #         (final_boldref_wf, func_derivatives_wf, [
+    #             ('outputnode.ref_image', 'inputnode.bold_native_ref'),
+    #             ('outputnode.bold_mask', 'inputnode.bold_mask_native')]),
+    #         (bold_bold_trans_wf if not multiecho else bold_t2s_wf, outputnode, [
+    #             ('outputnode.bold', 'bold_native')])
+    #     ])
 
     if spaces.get_spaces(nonstandard=False, dim=(3,)):
         # Apply transforms in 1 shot

@@ -149,104 +149,104 @@ def init_func_derivatives_wf(
                                          ('anat2bold_xfm', 'in_file')]),
     ])
 
-    if nonstd_spaces.intersection(('func', 'run', 'bold', 'boldref', 'sbref')):
-        ds_bold_native = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, desc='preproc', compress=True, SkullStripped=False,
-                TaskName=metadata.get('TaskName'), **timing_parameters),
-            name='ds_bold_native', run_without_submitting=True,
-            mem_gb=DEFAULT_MEMORY_MIN_GB)
-        ds_bold_native_ref = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, suffix='boldref', compress=True,
-                                dismiss_entities=("echo",)),
-            name='ds_bold_native_ref', run_without_submitting=True,
-            mem_gb=DEFAULT_MEMORY_MIN_GB)
-        ds_bold_mask_native = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
-                                compress=True, dismiss_entities=("echo",)),
-            name='ds_bold_mask_native', run_without_submitting=True,
-            mem_gb=DEFAULT_MEMORY_MIN_GB)
+    # if nonstd_spaces.intersection(('func', 'run', 'bold', 'boldref', 'sbref')):
+    #     ds_bold_native = pe.Node(
+    #         DerivativesDataSink(
+    #             base_directory=output_dir, desc='preproc', compress=True, SkullStripped=False,
+    #             TaskName=metadata.get('TaskName'), **timing_parameters),
+    #         name='ds_bold_native', run_without_submitting=True,
+    #         mem_gb=DEFAULT_MEMORY_MIN_GB)
+    #     ds_bold_native_ref = pe.Node(
+    #         DerivativesDataSink(base_directory=output_dir, suffix='boldref', compress=True,
+    #                             dismiss_entities=("echo",)),
+    #         name='ds_bold_native_ref', run_without_submitting=True,
+    #         mem_gb=DEFAULT_MEMORY_MIN_GB)
+    #     ds_bold_mask_native = pe.Node(
+    #         DerivativesDataSink(base_directory=output_dir, desc='brain', suffix='mask',
+    #                             compress=True, dismiss_entities=("echo",)),
+    #         name='ds_bold_mask_native', run_without_submitting=True,
+    #         mem_gb=DEFAULT_MEMORY_MIN_GB)
 
-        workflow.connect([
-            (inputnode, ds_bold_native, [('source_file', 'source_file'),
-                                         ('bold_native', 'in_file')]),
-            (inputnode, ds_bold_native_ref, [('source_file', 'source_file'),
-                                             ('bold_native_ref', 'in_file')]),
-            (inputnode, ds_bold_mask_native, [('source_file', 'source_file'),
-                                              ('bold_mask_native', 'in_file')]),
-            (raw_sources, ds_bold_mask_native, [('out', 'RawSources')]),
-        ])
+    #     workflow.connect([
+    #         (inputnode, ds_bold_native, [('source_file', 'source_file'),
+    #                                      ('bold_native', 'in_file')]),
+    #         (inputnode, ds_bold_native_ref, [('source_file', 'source_file'),
+    #                                          ('bold_native_ref', 'in_file')]),
+    #         (inputnode, ds_bold_mask_native, [('source_file', 'source_file'),
+    #                                           ('bold_mask_native', 'in_file')]),
+    #         (raw_sources, ds_bold_mask_native, [('out', 'RawSources')]),
+    #     ])
 
-    # Resample to T1w space
-    if nonstd_spaces.intersection(('T1w', 'anat')):
-        ds_bold_t1 = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, space='T1w', desc='preproc', compress=True,
-                SkullStripped=False, TaskName=metadata.get('TaskName'), **timing_parameters),
-            name='ds_bold_t1', run_without_submitting=True,
-            mem_gb=DEFAULT_MEMORY_MIN_GB)
-        ds_bold_t1_ref = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, space='T1w', suffix='boldref',
-                                compress=True, dismiss_entities=("echo",)),
-            name='ds_bold_t1_ref', run_without_submitting=True,
-            mem_gb=DEFAULT_MEMORY_MIN_GB)
-        ds_bold_mask_t1 = pe.Node(
-            DerivativesDataSink(base_directory=output_dir, space='T1w', desc='brain',
-                                suffix='mask', compress=True, dismiss_entities=("echo",)),
-            name='ds_bold_mask_t1', run_without_submitting=True,
-            mem_gb=DEFAULT_MEMORY_MIN_GB)
-        workflow.connect([
-            (inputnode, ds_bold_t1, [('source_file', 'source_file'),
-                                     ('bold_t1', 'in_file')]),
-            (inputnode, ds_bold_t1_ref, [('source_file', 'source_file'),
-                                         ('bold_t1_ref', 'in_file')]),
-            (inputnode, ds_bold_mask_t1, [('source_file', 'source_file'),
-                                          ('bold_mask_t1', 'in_file')]),
-            (raw_sources, ds_bold_mask_t1, [('out', 'RawSources')]),
-        ])
-        if freesurfer:
-            ds_bold_aseg_t1 = pe.Node(DerivativesDataSink(
-                base_directory=output_dir, space='T1w', desc='aseg', suffix='dseg',
-                compress=True, dismiss_entities=("echo",)),
-                name='ds_bold_aseg_t1', run_without_submitting=True,
-                mem_gb=DEFAULT_MEMORY_MIN_GB)
-            ds_bold_aparc_t1 = pe.Node(DerivativesDataSink(
-                base_directory=output_dir, space='T1w', desc='aparcaseg', suffix='dseg',
-                compress=True, dismiss_entities=("echo",)),
-                name='ds_bold_aparc_t1', run_without_submitting=True,
-                mem_gb=DEFAULT_MEMORY_MIN_GB)
-            workflow.connect([
-                (inputnode, ds_bold_aseg_t1, [('source_file', 'source_file'),
-                                              ('bold_aseg_t1', 'in_file')]),
-                (inputnode, ds_bold_aparc_t1, [('source_file', 'source_file'),
-                                               ('bold_aparc_t1', 'in_file')]),
-            ])
+    # # Resample to T1w space
+    # if nonstd_spaces.intersection(('T1w', 'anat')):
+    #     ds_bold_t1 = pe.Node(
+    #         DerivativesDataSink(
+    #             base_directory=output_dir, space='T1w', desc='preproc', compress=True,
+    #             SkullStripped=False, TaskName=metadata.get('TaskName'), **timing_parameters),
+    #         name='ds_bold_t1', run_without_submitting=True,
+    #         mem_gb=DEFAULT_MEMORY_MIN_GB)
+    #     ds_bold_t1_ref = pe.Node(
+    #         DerivativesDataSink(base_directory=output_dir, space='T1w', suffix='boldref',
+    #                             compress=True, dismiss_entities=("echo",)),
+    #         name='ds_bold_t1_ref', run_without_submitting=True,
+    #         mem_gb=DEFAULT_MEMORY_MIN_GB)
+    #     ds_bold_mask_t1 = pe.Node(
+    #         DerivativesDataSink(base_directory=output_dir, space='T1w', desc='brain',
+    #                             suffix='mask', compress=True, dismiss_entities=("echo",)),
+    #         name='ds_bold_mask_t1', run_without_submitting=True,
+    #         mem_gb=DEFAULT_MEMORY_MIN_GB)
+    #     workflow.connect([
+    #         (inputnode, ds_bold_t1, [('source_file', 'source_file'),
+    #                                  ('bold_t1', 'in_file')]),
+    #         (inputnode, ds_bold_t1_ref, [('source_file', 'source_file'),
+    #                                      ('bold_t1_ref', 'in_file')]),
+    #         (inputnode, ds_bold_mask_t1, [('source_file', 'source_file'),
+    #                                       ('bold_mask_t1', 'in_file')]),
+    #         (raw_sources, ds_bold_mask_t1, [('out', 'RawSources')]),
+    #     ])
+    #     if freesurfer:
+    #         ds_bold_aseg_t1 = pe.Node(DerivativesDataSink(
+    #             base_directory=output_dir, space='T1w', desc='aseg', suffix='dseg',
+    #             compress=True, dismiss_entities=("echo",)),
+    #             name='ds_bold_aseg_t1', run_without_submitting=True,
+    #             mem_gb=DEFAULT_MEMORY_MIN_GB)
+    #         ds_bold_aparc_t1 = pe.Node(DerivativesDataSink(
+    #             base_directory=output_dir, space='T1w', desc='aparcaseg', suffix='dseg',
+    #             compress=True, dismiss_entities=("echo",)),
+    #             name='ds_bold_aparc_t1', run_without_submitting=True,
+    #             mem_gb=DEFAULT_MEMORY_MIN_GB)
+    #         workflow.connect([
+    #             (inputnode, ds_bold_aseg_t1, [('source_file', 'source_file'),
+    #                                           ('bold_aseg_t1', 'in_file')]),
+    #             (inputnode, ds_bold_aparc_t1, [('source_file', 'source_file'),
+    #                                            ('bold_aparc_t1', 'in_file')]),
+    #         ])
 
-    if use_aroma:
-        ds_aroma_noise_ics = pe.Node(DerivativesDataSink(
-            base_directory=output_dir, suffix='AROMAnoiseICs', dismiss_entities=("echo",)),
-            name="ds_aroma_noise_ics", run_without_submitting=True,
-            mem_gb=DEFAULT_MEMORY_MIN_GB)
-        ds_melodic_mix = pe.Node(DerivativesDataSink(
-            base_directory=output_dir, desc='MELODIC', suffix='mixing',
-            dismiss_entities=("echo",)),
-            name="ds_melodic_mix", run_without_submitting=True,
-            mem_gb=DEFAULT_MEMORY_MIN_GB)
-        ds_aroma_std = pe.Node(
-            DerivativesDataSink(
-                base_directory=output_dir, space='MNI152NLin6Asym', desc='smoothAROMAnonaggr',
-                compress=True, TaskName=metadata.get('TaskName'), **timing_parameters),
-            name='ds_aroma_std', run_without_submitting=True,
-            mem_gb=DEFAULT_MEMORY_MIN_GB)
+    # if use_aroma:
+    #     ds_aroma_noise_ics = pe.Node(DerivativesDataSink(
+    #         base_directory=output_dir, suffix='AROMAnoiseICs', dismiss_entities=("echo",)),
+    #         name="ds_aroma_noise_ics", run_without_submitting=True,
+    #         mem_gb=DEFAULT_MEMORY_MIN_GB)
+    #     ds_melodic_mix = pe.Node(DerivativesDataSink(
+    #         base_directory=output_dir, desc='MELODIC', suffix='mixing',
+    #         dismiss_entities=("echo",)),
+    #         name="ds_melodic_mix", run_without_submitting=True,
+    #         mem_gb=DEFAULT_MEMORY_MIN_GB)
+    #     ds_aroma_std = pe.Node(
+    #         DerivativesDataSink(
+    #             base_directory=output_dir, space='MNI152NLin6Asym', desc='smoothAROMAnonaggr',
+    #             compress=True, TaskName=metadata.get('TaskName'), **timing_parameters),
+    #         name='ds_aroma_std', run_without_submitting=True,
+    #         mem_gb=DEFAULT_MEMORY_MIN_GB)
 
-        workflow.connect([
-            (inputnode, ds_aroma_noise_ics, [('source_file', 'source_file'),
-                                             ('aroma_noise_ics', 'in_file')]),
-            (inputnode, ds_melodic_mix, [('source_file', 'source_file'),
-                                         ('melodic_mix', 'in_file')]),
-            (inputnode, ds_aroma_std, [('source_file', 'source_file'),
-                                       ('nonaggr_denoised_file', 'in_file')]),
-        ])
+    #     workflow.connect([
+    #         (inputnode, ds_aroma_noise_ics, [('source_file', 'source_file'),
+    #                                          ('aroma_noise_ics', 'in_file')]),
+    #         (inputnode, ds_melodic_mix, [('source_file', 'source_file'),
+    #                                      ('melodic_mix', 'in_file')]),
+    #         (inputnode, ds_aroma_std, [('source_file', 'source_file'),
+    #                                    ('nonaggr_denoised_file', 'in_file')]),
+    #     ])
 
     if getattr(spaces, '_cached') is None:
         return workflow
